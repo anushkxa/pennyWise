@@ -70,3 +70,60 @@ app.get("/allPositions",async(req,res)=>{
     let allPositions= await PositionsModel.find({});
     res.json(allPositions);
 });
+
+app.get("/allOrders",async(req,res)=>{
+  let allOrders = await OrdersModel.find({});
+  res.json(allOrders)
+})
+
+app.post('/newOrder', async (req, res) => {
+  const { name, qty, price, mode } = req.body;
+
+  try {
+    let existing = await OrdersModel.findOne({ name });
+
+    if (mode === "BUY") {
+      if (existing) {
+        existing.qty += qty;
+        existing.price = price;
+        await existing.save();
+      } else {
+        const newOrder= new OrdersModel({
+          name,
+          qty,
+          price,
+          avg: price,
+        });
+        await newOrder.save();
+      }
+      return res.json({ message: "Stock Bought" });
+    }
+
+    if (mode === "SELL") {
+      if (!existing) {
+        alert("Stock not found!")
+      }
+
+      if (existing.qty < qty) {
+        alert("Not enough Quantity!")
+      }
+
+      existing.qty -= qty;
+
+      if (existing.qty === 0) {
+        await OrdersModel.deleteOne({ name });
+        return res.json({ message: "Stock fully sold" });
+        alert("Sold Successfully");
+      } else {
+        await existing.save();
+        return res.json({ message: "Stock sold partially" });
+      }
+    }
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
