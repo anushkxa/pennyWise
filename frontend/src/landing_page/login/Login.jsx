@@ -11,9 +11,12 @@ function Login() {
     const match = origin.match(/:(\d+)$/);
     if (match) {
       const port = Number(match[1]);
-      return origin.replace(/:\d+$/, `:${port + 1}/`);
+      // When both apps run with Vite, the other app is often on the adjacent port.
+      // In your current setup, dashboard runs on 5173, so when frontend runs on 5174,
+      // `port - 1` points to the dashboard.
+      return origin.replace(/:\d+$/, `:${Math.max(1, port - 1)}/`);
     }
-    return "http://localhost:5174/";
+    return "http://localhost:5173/";
   })();
 
   const DASHBOARD_URL =
