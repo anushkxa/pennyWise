@@ -2,6 +2,12 @@ const User = require("../model/UserModel");
 const { createSecretToken } = require("../util/SecretToken");
 const bcrypt = require("bcryptjs");
 
+const cookieOptions = {
+  httpOnly: true,
+  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
+};
+
 module.exports.Signup = async (req, res) => {
   try {
     const { email, password, username, createdAt } = req.body;
@@ -16,11 +22,7 @@ module.exports.Signup = async (req, res) => {
     const safeUser = user.toObject();
     delete safeUser.password;
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-    });
+    res.cookie("token", token, cookieOptions);
 
     return res
       .status(201)
@@ -49,14 +51,37 @@ module.exports.Login = async (req, res) => {
       return res.status(401).json({ message: "Incorrect password or email" });
     }
 
+    user.lastLoginAt = new Date();
+    user.loginCount = (user.loginCount || 0) + 1;
+    await user.save();
+
     const token = createSecretToken(user._id);
-    res.cookie("token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-    });
+    res.cookie("token", token, cookieOptions);
 
     return res.status(201).json({ message: "User logged in successfully", success: true });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+module.exports.Me = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select(
+      "email username createdAt lastLoginAt loginCount"
+    );
+    if (!user) return res.status(404).json({ message: "User not found" });
+    return res.json({ user });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+module.exports.Logout = async (req, res) => {
+  try {
+    res.clearCookie("token", cookieOptions);
+    return res.json({ success: true });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });

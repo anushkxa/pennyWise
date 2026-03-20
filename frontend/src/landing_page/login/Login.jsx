@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 
-function Signup() {
+function Login() {
   const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,27 +25,22 @@ function Signup() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:3002/auth/signup", {
+      const res = await fetch("http://localhost:3002/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          email,
-          username,
-          password,
-          createdAt: new Date().toISOString(),
-        }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        setError(data?.message || "Signup failed");
+        setError(data?.message || "Login failed");
         return;
       }
 
       window.location.href = DASHBOARD_URL;
     } catch (err) {
-      setError("Network error during signup");
+      setError("Network error during login");
     } finally {
       setLoading(false);
     }
@@ -54,8 +48,8 @@ function Signup() {
 
   return (
     <div className="container py-5">
-      <h1 className="mb-3">Signup</h1>
-      <p>Create your PennyWise account to start investing.</p>
+      <h1 className="mb-3">Login</h1>
+      <p>Login to access your dashboard.</p>
 
       <form onSubmit={handleSubmit} style={{ maxWidth: 420 }}>
         <div className="mb-3">
@@ -65,17 +59,6 @@ function Signup() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-
-        <div className="mb-3">
-          <label className="form-label">Username</label>
-          <input
-            className="form-control"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
             required
           />
         </div>
@@ -98,12 +81,12 @@ function Signup() {
         ) : null}
 
         <button className="btn btn-primary" type="submit" disabled={loading}>
-          {loading ? "Signing up..." : "Sign up"}
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
     </div>
   );
 }
 
-export default Signup;
+export default Login;
 

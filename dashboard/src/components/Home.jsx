@@ -2,12 +2,15 @@
 
 import Dashboard from "./Dashboard";
 import TopBar from "./TopBar";
+import AuthGate from "./AuthGate";
 
 const Home = () => {
   return (
     <>
-      <TopBar />
-      <Dashboard />
+      <AuthGate>
+        <TopBar />
+        <Dashboard />
+      </AuthGate>
     </>
   );
 };

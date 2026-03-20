@@ -10,11 +10,15 @@ const SellActionWindow = ({uid})=>{
     const { closeSellWindow } = useContext(GeneralContext);
 
     const handleSellClick=()=>{
-        axios.post('http://localhost:3002/newOrder',{
+        axios.post(
+          'http://localhost:3002/newOrder',
+          {
             name:uid,
             qty:stockQuantity,
             mode:"SELL",
-            });
+          },
+          { withCredentials: true }
+        );
         closeSellWindow();
     };
     const handleCancelClick = ()=>{

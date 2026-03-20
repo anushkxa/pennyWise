@@ -7,7 +7,7 @@ import axios from 'axios';
 const Orders = () => {
   const [allOrders, setAllOrders] = useState([]);
   useEffect(()=>{
-    axios.get("http://localhost:3002/allOrders").then((res)=>{
+    axios.get("http://localhost:3002/allOrders", { withCredentials: true }).then((res)=>{
       setAllOrders(res.data);
     })
   },[]);
