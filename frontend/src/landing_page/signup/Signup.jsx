@@ -12,9 +12,10 @@ function Signup() {
     const match = origin.match(/:(\d+)$/);
     if (match) {
       const port = Number(match[1]);
-      return origin.replace(/:\d+$/, `:${port + 1}/`);
+      //  dashboard runs on 5173, so when frontend runs on 5174,
+      return origin.replace(/:\d+$/, `:${Math.max(1, port - 1)}/`);
     }
-    return "http://localhost:5174/";
+    return "http://localhost:5173/";
   })();
 
   const DASHBOARD_URL =

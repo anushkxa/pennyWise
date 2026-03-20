@@ -15,7 +15,7 @@ const AuthGate = ({ children }) => {
           if (match) {
             const port = Number(match[1]);
             return (
-              origin.replace(/:\d+$/, `:${Math.max(1, port - 1)}`) + "/login"
+              origin.replace(/:\d+$/, `:${port + 1}`) + "/login"
             );
           }
           return "http://localhost:5173/login";
