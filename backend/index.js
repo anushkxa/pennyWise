@@ -16,7 +16,6 @@ const {OrdersModel} = require("./model/OrdersModel");
 const {PositionsModel} = require("./model/PositionsModel");
 const app = express();
 
-// CORS must allow credentials because we store auth in an httpOnly cookie.
 const corsOptions = {
   origin: (origin, cb) => {
     if (!origin) return cb(null, true);
@@ -26,7 +25,6 @@ const corsOptions = {
       .map((o) => o.trim())
       .filter(Boolean);
 
-    // Allow any local dev Vite port.
     const isLocal =
       /^http:\/\/localhost:\d+$/.test(origin) ||
       /^http:\/\/127\.0\.0\.1:\d+$/.test(origin);
@@ -85,7 +83,6 @@ app.use(
   cors(corsOptions)
 );
 
-// Auth endpoints: /auth/signup, /auth/login, /auth/me, ...
 app.use("/auth", authRoute);
 
 app.get("/allHoldings", requireAuth, async(req,res)=>{

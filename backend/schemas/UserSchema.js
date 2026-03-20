@@ -18,6 +18,14 @@ const UsersSchema =new Schema({
     type: Date,
     default: new Date(),
     },
+    lastLoginAt: {
+      type: Date,
+      default: null,
+    },
+    loginCount: {
+      type: Number,
+      default: 0,
+    },
 });
 
 module.exports={UsersSchema};

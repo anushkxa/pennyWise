@@ -51,6 +51,10 @@ module.exports.Login = async (req, res) => {
       return res.status(401).json({ message: "Incorrect password or email" });
     }
 
+    user.lastLoginAt = new Date();
+    user.loginCount = (user.loginCount || 0) + 1;
+    await user.save();
+
     const token = createSecretToken(user._id);
     res.cookie("token", token, cookieOptions);
 
@@ -63,7 +67,9 @@ module.exports.Login = async (req, res) => {
 
 module.exports.Me = async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select("email username createdAt");
+    const user = await User.findById(req.userId).select(
+      "email username createdAt lastLoginAt loginCount"
+    );
     if (!user) return res.status(404).json({ message: "User not found" });
     return res.json({ user });
   } catch (error) {
