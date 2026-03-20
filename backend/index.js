@@ -15,10 +15,28 @@ const {OrdersModel} = require("./model/OrdersModel");
 
 const {PositionsModel} = require("./model/PositionsModel");
 const app = express();
-const corsOrigins = (process.env.CORS_ORIGINS || "http://localhost:5173,http://localhost:3000")
-  .split(",")
-  .map((o) => o.trim())
-  .filter(Boolean);
+
+// CORS must allow credentials because we store auth in an httpOnly cookie.
+const corsOptions = {
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);
+
+    const allowedOrigins = (process.env.CORS_ORIGINS || "")
+      .split(",")
+      .map((o) => o.trim())
+      .filter(Boolean);
+
+    // Allow any local dev Vite port.
+    const isLocal =
+      /^http:\/\/localhost:\d+$/.test(origin) ||
+      /^http:\/\/127\.0\.0\.1:\d+$/.test(origin);
+
+    if (isLocal || allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error("Not allowed by CORS"));
+  },
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
+};
 app.use(cookieParser());
 app.use(express.json());
 app.use(bodyParser.json());
@@ -64,30 +82,23 @@ app.use(bodyParser.json());
 // })
 
 app.use(
-  cors({
-    origin: corsOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  })
+  cors(corsOptions)
 );
 
-app.listen(PORT,()=>{
-    console.log("Started");
-    mongoose.connect(url);
-    console.log("DB Connected");
-})
+// Auth endpoints: /auth/signup, /auth/login, /auth/me, ...
+app.use("/auth", authRoute);
 
-app.get("/allHoldings",async(req,res)=>{
+app.get("/allHoldings", requireAuth, async(req,res)=>{
     let allHoldings= await HoldingsModel.find({});
     res.json(allHoldings);
 });
 
-app.get("/allPositions",async(req,res)=>{
+app.get("/allPositions", requireAuth, async(req,res)=>{
     let allPositions= await PositionsModel.find({});
     res.json(allPositions);
 });
 
-app.get("/allOrders",async(req,res)=>{
+app.get("/allOrders", requireAuth, async(req,res)=>{
   let allOrders = await OrdersModel.find({});
   res.json(allOrders)
 })
@@ -142,4 +153,10 @@ app.post('/newOrder', requireAuth, async (req, res) => {
 });
 
 
+
+app.listen(PORT,()=>{
+    console.log("Started");
+    mongoose.connect(url);
+    console.log("DB Connected");
+})
 
