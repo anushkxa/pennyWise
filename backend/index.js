@@ -1,17 +1,26 @@
 require('dotenv').config();
 
+
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require('body-parser');
 const cors= require('cors');
 const PORT = process.env.PORT || 3002;
 const url = process.env.MONGO_URL;
+const cookieParser = require("cookie-parser");
+const authRoute = require("./routes/AuthRoute");
+const { requireAuth } = require("./middleware/authMiddleware");
 const {HoldingsModel} = require("./model/HoldingsModel");
 const {OrdersModel} = require("./model/OrdersModel");
 
 const {PositionsModel} = require("./model/PositionsModel");
 const app = express();
-app.use(cors());
+const corsOrigins = (process.env.CORS_ORIGINS || "http://localhost:5173,http://localhost:3000")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+app.use(cookieParser());
+app.use(express.json());
 app.use(bodyParser.json());
 
 // app.get("/addPositions", async(req,res)=>{
@@ -54,6 +63,13 @@ app.use(bodyParser.json());
 // res.send("HEHEH");
 // })
 
+app.use(
+  cors({
+    origin: corsOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 
 app.listen(PORT,()=>{
     console.log("Started");
@@ -76,7 +92,7 @@ app.get("/allOrders",async(req,res)=>{
   res.json(allOrders)
 })
 
-app.post('/newOrder', async (req, res) => {
+app.post('/newOrder', requireAuth, async (req, res) => {
   const { name, qty, price, mode } = req.body;
 
   try {
